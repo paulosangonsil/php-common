@@ -11,6 +11,8 @@ abstract class Abstract_DBAccess {
     private /*string*/ $_passwordUser;
     private /*Exception*/ $_creationException    = NULL;
 
+    const IDX_NAME_COND_SYMBOL = 'condition';
+
     /**
      */
     public function __construct(/*string*/ $hostName, /*string*/ $dbName) {
@@ -41,8 +43,16 @@ abstract class Abstract_DBAccess {
                     /*Map<colName: string; order: Abstract_TbRec::LIST_ORDER_*>*/ $order = NULL,
                     /*int*/ $numPgOffset = 0, /*int*/ $numMaxItems = 0): bool;
 
+    public abstract function queryMixed(/*string*/ $nameTb, /*string*/ $namesColToRet,
+        /*List<string>*/ $condArray = NULL,
+        /*Map<colName: string; order: Abstract_TbRec::LIST_ORDER_*>*/ $order = NULL,
+        /*int*/ $numPgOffset = 0, /*int*/ $numMaxItems = 0): bool;
+
     public abstract function rawquery(/*string*/ $query): bool;
-        
+
+    public abstract function processSimpleQuery(/*Map<key, value*/ $valuesMap): string;
+    public abstract function processInStrQuery(/*Map<key, value*/ $valuesMap): string;
+
     /*+getLastQueryResult(): List<Object>*/
     public abstract /*List<Object>*/ function getLastQueryResult();
 

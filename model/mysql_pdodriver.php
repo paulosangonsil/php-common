@@ -26,27 +26,26 @@ class MySQL_PDODriver extends \Abstract_DBAccess {
         }
     }
 
-    /**
-     * (non-PHPdoc)
-     *
-     * @see Abstract_DBAccess::query()
-     */
-    public function query(/*string*/ $nameTb, /*string*/ $namesColToRet, /*Map<colName: string, colValue: Object>*/ $valuesMap = NULL,
-                            /*Map<colName: string; order: Abstract_DBAccess::LIST_ORDER_*>*/ $order = NULL,
-                            /*int*/ $numPgOffset = 0, /*int*/ $numMaxItems = 0): bool {
-        $mtdRet = FALSE;
+    protected function _assembleSQLConditionalAnd($inStr, $key, $cond, $value): string {
+        $inStr .= "`$key` $cond ";
 
-        if ($this->get_objPDO() == NULL) {
-            goto mtdEnd;
+        if ( is_numeric ($value) ) {
+            $inStr .= "$value";
+        }
+        else if ( is_null($value) ) {
+            $inStr .= 'NULL';
+        }
+        else {
+            $inStr .= "'$value'";
         }
 
-        $strQuery = "SELECT $namesColToRet FROM `" . $this->get_nameDB() . "`.`$nameTb`";
+        return $inStr;
+    }
 
-        $strValues = NULL;
+    public function processSimpleQuery(/*Map<key, value*/ $valuesMap): string {
+        $strValues = "";
 
         if ($valuesMap != NULL) {
-            $strValues = "";
-
             $firstIter = TRUE;
 
             foreach ($valuesMap as $itemKey => $itemValue) {
@@ -57,14 +56,102 @@ class MySQL_PDODriver extends \Abstract_DBAccess {
                     $strValues .= " AND ";
                 }
 
-                $strValues .= "`$itemKey`=";
+                if (is_array($itemValue)){
+                    $strTmp = '';
 
-                if ( is_numeric ($itemValue) ) {
-                    $strValues .= "$itemValue";
+                    $condSign = '=';
+
+                    if (array_key_exists($itemValue, Abstract_DBAccess::IDX_NAME_COND_SYMBOL)){
+                        $condSign = $itemValue[Abstract_DBAccess::IDX_NAME_COND_SYMBOL];
+                    }
+
+                    $firstSubIter = TRUE;
+
+                    foreach ($itemValue as $itemSubKey => $itemSubValue) {
+                        if (strcmp($itemSubKey, Abstract_DBAccess::IDX_NAME_COND_SYMBOL) != 0) {
+                            if ($firstSubIter) {
+                                $firstSubIter = FALSE;
+                            }
+                            else {
+                                $strTmp .= " AND ";
+                            }
+
+                            $strTmp .= $this->_assembleSQLConditionalAnd
+                                        ($strTmp, $itemSubKey, $condSign, $itemSubValue);
+                        }
+                    }
+
+                    $strValues .= "($strTmp)";
                 }
                 else {
-                    $strValues .= "'$itemValue'";
+                    $strValues .= $this->_assembleSQLConditionalAnd
+                                    ($strValues, $itemKey, '=', $itemValue);
                 }
+            }
+        }
+
+        return $strValues;
+    }
+
+    public function processInStrQuery(/*Map<key, value*/ $valuesMap): string {
+        $strValues = "";
+
+        if ($valuesMap != NULL) {
+            $firstIter = TRUE;
+
+            foreach ($valuesMap as $itemKey => $itemValue) {
+                if ($firstIter) {
+                    $firstIter = FALSE;
+                }
+                else {
+                    $strValues .= " AND ";
+                }
+
+                $strValues .= "(INSTR(`$itemKey`, '$itemValue') > 0)";
+            }
+        }
+
+        return $strValues;
+    }
+
+    /**
+     * (non-PHPdoc)
+     *
+     * @see Abstract_DBAccess::query()
+     */
+    public function query(/*string*/ $nameTb, /*string*/ $namesColToRet, /*Map<colName: string, colValue: Object>*/ $valuesMap = NULL,
+        /*Map<colName: string; order: Abstract_DBAccess::LIST_ORDER_*>*/ $order = NULL,
+        /*int*/ $numPgOffset = 0, /*int*/ $numMaxItems = 0): bool {
+        return $this->_queryBase('processSimpleQuery', $nameTb, $namesColToRet, $valuesMap, $numPgOffset, $numMaxItems);
+    }
+
+    /**
+     * (non-PHPdoc)
+     *
+     * @see Abstract_DBAccess::query()
+     */
+    protected function _queryBase(/*string*/ $variationFn, /*string*/ $nameTb, /*string*/ $namesColToRet,
+        /*Map<colName: string, colValue: Object>*/ $conditions = NULL,
+        /*Map<colName: string; order: Abstract_DBAccess::LIST_ORDER_*>*/ $order = NULL,
+        /*int*/ $numPgOffset = 0, /*int*/ $numMaxItems = 0): bool {
+        $mtdRet = FALSE;
+
+        if ($this->get_objPDO() == NULL) {
+            goto mtdEnd;
+        }
+
+        $strQuery = "SELECT $namesColToRet FROM `" . $this->get_nameDB() . "`.`$nameTb`";
+
+        $strValues = NULL;
+
+        if ($conditions != NULL) {
+            if ( is_array($conditions) ) {
+                if ($variationFn != NULL) {
+                    $strValues = call_user_func(array($this, $variationFn), $conditions);
+                }
+            }
+            else if ( is_string($conditions) ) {
+                $strValues = $conditions;
             }
         }
 
@@ -100,6 +187,18 @@ class MySQL_PDODriver extends \Abstract_DBAccess {
         $this->set_objQuery( $this->get_objPDO()->query($query) );
 
         return ($this->_getLastQueryResult() != FALSE);
+    }
+
+    /**
+     * (non-PHPdoc)
+     *
+     * @see Abstract_DBAccess::queryMixed()
+     */
+    public function queryMixed(/*string*/ $nameTb, /*string*/ $namesColToRet,
+        /*List<string>*/ $condArray = NULL,
+        /*Map<colName: string; order: Abstract_TbRec::LIST_ORDER_*>*/ $order = NULL,
+        /*int*/ $numPgOffset = 0, /*int*/ $numMaxItems = 0): bool {
+        return $this->_queryBase(NULL, $nameTb, $namesColToRet, $condArray, $numPgOffset, $numMaxItems);
     }
 
     /**
