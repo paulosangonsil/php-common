@@ -102,6 +102,7 @@ class General {
      */
     static function /*String*/ _checkLogon(): string {
         $appl_usr   = '';
+        $noLogin = TRUE;
 
         if ( ! array_key_exists(\_SESSION_LOGIN_NAME, $_SESSION) ) {
             $appl_usr   = (isset ($_POST[\FLD_USRNAME]) ) ? $_POST[\FLD_USRNAME] : '';
@@ -118,10 +119,7 @@ class General {
             $objUsr = new \User($appl_usr);
 
             // Tem alguma coisa errada: tenta de novo, peao!
-            if ( ! $objUsr->compare_Pwd($appl_passwd) ) {
-                die ("Error" . " File: " . __FILE__ . " on line: " . __LINE__ . " result = senha nao bate");
-            }
-            else {
+            if ( $objUsr->compare_Pwd($appl_passwd) ) {
                 $_SESSION[\_SESSION_LOGIN_NAME] = $appl_usr;
                 $_SESSION[\_SESSION_LOGIN_PWD] = $appl_passwd;
 
@@ -136,7 +134,13 @@ class General {
                 }
 
                 date_default_timezone_set($_SESSION[\_SESSION_DATEZONE]);
+
+                $noLogin = FALSE;
             }
+        }
+
+        if ($noLogin) {
+            $appl_usr = '';
         }
 
         return $appl_usr;
