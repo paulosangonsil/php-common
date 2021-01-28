@@ -59,6 +59,16 @@ abstract class Abstract_DBAccess {
     /*+delete(tbName: string; valuesMap: Map<colName: string; colValue: Object>): int*/
     public abstract function delete(/*string*/ $nameTb, /*Map<colName: string; colValue: Object>*/ $valuesMap);
 
+    
+    /**
+     \brief Method to get the DBMS given auto incremented number for
+     the row/record. *This method is related to the AUTO_INCREMENT
+     DBMS's feature.
+     
+     @return int The auto generated number or -1 otherwise.
+     */
+    public abstract function getGeneratedIncNumber(): int;
+
     /**
      * _nameHost
      * @return string

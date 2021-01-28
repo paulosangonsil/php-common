@@ -222,6 +222,21 @@ class MySQL_PDODriver extends \Abstract_DBAccess {
     /**
      * (non-PHPdoc)
      *
+     * @see Abstract_DBAccess::getGeneratedIncNumber()
+     */
+    public function getGeneratedIncNumber(): int {
+        $mtdRet = UNDEFINED;
+
+        if ($this->get_objPDO() != NULL) {
+            $mtdRet = $this->get_objPDO()->lastInsertId();
+        }
+
+        return $mtdRet;
+    }
+
+    /**
+     * (non-PHPdoc)
+     *
      * @see Abstract_DBAccess::insert()
      */
     public function insert($nameTb, $valuesMap) {
