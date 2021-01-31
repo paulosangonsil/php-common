@@ -122,7 +122,7 @@ class MySQL_PDODriver extends \Abstract_DBAccess {
     public function query(/*string*/ $nameTb, /*string*/ $namesColToRet, /*Map<colName: string, colValue: Object>*/ $valuesMap = NULL,
         /*Map<colName: string; order: Abstract_DBAccess::LIST_ORDER_*>*/ $order = NULL,
         /*int*/ $numPgOffset = 0, /*int*/ $numMaxItems = 0): bool {
-        return $this->_queryBase('processSimpleQuery', $nameTb, $namesColToRet, $valuesMap, $numPgOffset, $numMaxItems);
+        return $this->_queryBase('processSimpleQuery', $nameTb, $namesColToRet, $valuesMap, $order, $numPgOffset, $numMaxItems);
     }
 
     /**
