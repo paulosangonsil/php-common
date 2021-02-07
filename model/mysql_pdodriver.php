@@ -27,19 +27,19 @@ class MySQL_PDODriver extends \Abstract_DBAccess {
     }
 
     protected function _assembleSQLConditionalAnd($inStr, $key, $cond, $value): string {
-        $inStr .= "`$key` $cond ";
+        $tmpStr = "$inStr`$key` $cond ";
 
         if ( is_numeric ($value) ) {
-            $inStr .= "$value";
+            $tmpStr .= "$value";
         }
         else if ( is_null($value) ) {
-            $inStr .= 'NULL';
+            $tmpStr = "$inStr`$key` IS NULL";
         }
         else {
-            $inStr .= "'$value'";
+            $tmpStr .= "'$value'";
         }
 
-        return $inStr;
+        return $tmpStr;
     }
 
     public function processSimpleQuery(/*Map<key, value*/ $valuesMap): string {
@@ -76,7 +76,7 @@ class MySQL_PDODriver extends \Abstract_DBAccess {
                                 $strTmp .= " AND ";
                             }
 
-                            $strTmp .= $this->_assembleSQLConditionalAnd
+                            $strTmp = $this->_assembleSQLConditionalAnd
                                         ($strTmp, $itemSubKey, $condSign, $itemSubValue);
                         }
                     }
@@ -84,7 +84,7 @@ class MySQL_PDODriver extends \Abstract_DBAccess {
                     $strValues .= "($strTmp)";
                 }
                 else {
-                    $strValues .= $this->_assembleSQLConditionalAnd
+                    $strValues = $this->_assembleSQLConditionalAnd
                                     ($strValues, $itemKey, '=', $itemValue);
                 }
             }
