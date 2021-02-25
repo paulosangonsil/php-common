@@ -252,7 +252,7 @@ class MySQL_PDODriver extends \Abstract_DBAccess {
         $strValues = "";
 
         foreach ($valuesMap as $itemKey => $itemValue) {
-            if ( ! empty($strValues) ) {
+            if (strlen($strValues) > 0) {
                 $strValues .= ", ";
             }
 
@@ -264,7 +264,7 @@ class MySQL_PDODriver extends \Abstract_DBAccess {
         $strValues = "";
 
         foreach ($valuesMap as $itemKey => $itemValue) {
-            if ( ! empty($strValues) ) {
+            if (strlen($strValues) > 0) {
                 $strValues .= ", ";
             }
 
