@@ -3,14 +3,14 @@
 /**
  *
  * @author Administrator
- *        
+ *
  */
 abstract class Abstract_JSONObj {
     protected /*object*/ $_objJSON;
     protected /*bool*/ $_isJSON;
 
     /**
-     * 
+     *
      * @param string $fromString
      */
     public function __construct(/*string*/ $fromString) {
@@ -26,7 +26,7 @@ abstract class Abstract_JSONObj {
     }
 
     /**
-     * 
+     *
      * @param string $fromString
      * @return boolean
      */
@@ -38,7 +38,7 @@ abstract class Abstract_JSONObj {
      * _objJSON
      * @return object
      */
-    public function get_objJSON(): object {
+    public function get_objJSON(): ?object {
         return $this->_objJSON;
     }
 
@@ -71,9 +71,23 @@ abstract class Abstract_JSONObj {
     }
 
     /**
-     * 
+     *
      */
     public function __toString(): string {
         return json_encode($this->_objJSON);
+    }
+
+    /**
+     * Function to convert class of given object
+     * @param Object $object
+     * @return mixed
+     */
+    static public function convertObjectClass(/*Object*/ $object, /*string*/ $final_class) {
+        return unserialize(sprintf(
+            'O:%d:"%s"%s',
+            strlen($final_class),
+            $final_class,
+            strstr(strstr(serialize($object), '"'), ':')
+            ));
     }
 }
